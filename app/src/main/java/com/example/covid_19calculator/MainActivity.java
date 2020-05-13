@@ -3,14 +3,19 @@ package com.example.covid_19calculator;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,14 +25,18 @@ import java.text.DecimalFormat;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     //Objetos
+    SeekBar seekbar;
     Button calcular,btn_limpiar,btn_segundo_activity;
     Spinner spinner_edades;
-    //RadioGroup temperatura,edad,sexo;
+    RadioGroup temperatura,sexo;
     RadioButton sin_fiebre,fiebre_moderada,fiebre;
     RadioButton mujer,hombre;
     //RadioButton joven,adulto,adulto_mayor;
     CheckBox obesidad, hipertension,diabetes,tabaco,cardiovascular,EPOC,inmunosupresion;
-    TextView prediagnostico,riesgo;
+    TextView prediagnostico,riesgo,nivelRiesgo;
+
+    //Imagenes para manejo de errores
+    ImageView error_temperatura,error_sexo,error_edad;
 
     //Variables
     String tollens="",recomendaciones="",_edad="",_genero="",_temperatura="",resultado_final="";
@@ -50,12 +59,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
         //RadioGroups
-        //temperatura=findViewById(R.id.temperatura);
+        temperatura=findViewById(R.id.temperatura);
+        sexo=findViewById(R.id.sexo);
 
-        //edad=findViewById(R.id.edad);
-        //sexo=findViewById(R.id.sexo);
-
-        //edad.setVisibility(View.INVISIBLE);
 
         //Temperatura
         sin_fiebre=findViewById(R.id.sin_fiebre);
@@ -82,6 +88,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         //Riesgo
         riesgo=findViewById(R.id.riesgo);
+        riesgo.setFocusable(false);
+
+        //Nivel de riesgo
+        nivelRiesgo=findViewById(R.id.nivel_riesgo);
 
         //Prediagnostico
         //prediagnostico=findViewById(R.id.prediagnostico_label);
@@ -90,8 +100,23 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         calcular=findViewById(R.id.calcular);
         btn_limpiar=findViewById(R.id.btn_limpiar);
         btn_segundo_activity=findViewById(R.id.activity_prediagnostico);
-
         btn_segundo_activity.setVisibility(View.GONE);
+
+        //Seekbar
+        seekbar=findViewById(R.id.seekBarRiesgo);
+        seekbar.setEnabled(false);
+        seekbar.getProgressDrawable().setColorFilter(Color.BLUE, PorterDuff.Mode.SRC_IN);
+        seekbar.getThumb().setColorFilter(Color.BLUE, PorterDuff.Mode.SRC_IN);
+
+        //Imagenes para errores
+        error_edad=findViewById(R.id.error_edad);
+        error_edad.setVisibility(View.GONE);
+
+        error_temperatura=findViewById(R.id.error_temperatura);
+        error_temperatura.setVisibility(View.GONE);
+
+        error_sexo=findViewById(R.id.error_sexo);
+        error_sexo.setVisibility(View.GONE);
     }
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -192,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         //_edad="adulto mayor";
                     }
                 }
+                //Cambia estado 7
                 estado=7;
 
             }else if (hombre.isChecked() && estado==5){
@@ -217,77 +243,72 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         porcentaje_riesgo+=0.8;
                     }
                 }
+                //Cambia estado a 8
+                estado=8;
             }
         }
 
 
 
-        //Condiciones para edad para mujer
-        /*if (estado==3 && _edad.equals("joven")){
-            //Porcentaje de riesgo no aumenta
-            estado=7;
-
-        }else if(estado==3 && _edad .equals("adulto")){
-            estado=9;
-            porcentaje_riesgo+=18.4;
-
-        }else if(estado==3 && _edad.equals("adulto mayor")){
-            estado=11;
-            porcentaje_riesgo+=51.7;
-        }
-
-        //Condiciones para edad para hombre
-        if (estado==5 && _edad.equals("joven")){
-            //Porcentaje de riesgo no aumenta
-            estado=7;
-
-        }else if(estado==5 && _edad .equals("adulto")){
-            estado=9;
-            porcentaje_riesgo+=18.4;
-
-        }else if(estado==5 && _edad.equals("adulto mayor")){
-            estado=11;
-            porcentaje_riesgo+=51.7;
-        }*/
-
-
-        //Estado 3 corresponde a mujer
-
-        if (estado==7 && tabaco.isChecked()){
-            porcentaje_riesgo+=3.9;
+        //Estado 7 corresponde a mujer y estado 8 correspon a hombre
+        if ((estado==7 || estado==8 )&& tabaco.isChecked()){
+            if (estado==7){
+                porcentaje_riesgo+=3.9;
+            }else if (estado==8){
+                porcentaje_riesgo+=5;
+            }
            tollens+=" ,fuma tabaco";
            recomendaciones+="•Consumo de tabaco: Evita en lo posible fumar y el uso de vapeadores y cigarros electronicos \n";
         }
 
-        if(estado==7 && obesidad.isChecked()){
-            porcentaje_riesgo+=5.3;
+        if((estado==7 || estado==8) && obesidad.isChecked()){
+            if (estado==7){
+                porcentaje_riesgo+=5.3;
+            }else if (estado==8){
+                porcentaje_riesgo+=5.98;
+            }
+
             tollens+=" ,tiene obesidad";
             recomendaciones+="•Obesidad: Cuida tus proporciones de comida, has ejercicio y mantente en un peso adecuado \n";
         }
 
-        if(estado == 7 && diabetes.isChecked()){
-            porcentaje_riesgo+=16.0;
+        if((estado == 7 ||estado==8)&& diabetes.isChecked()){
+            if (estado==7){
+                porcentaje_riesgo+=16.0;
+            }else if (estado==8){
+                porcentaje_riesgo+=17.0;
+            }
             tollens+=" ,tiene diabetes";
             recomendaciones+="•Diabetes: Continua tomando tus medicamentos para la diabetes y revisa diariamente tu nivel de azúcar\n";
         }
 
-        if (estado == 7 && EPOC.isChecked()){
-            //checar porcentajes
-            porcentaje_riesgo+=1.2;
+        if ((estado == 7 || estado==8) && EPOC.isChecked()){
+
+            if (estado==7){
+                porcentaje_riesgo+=1.2;
+            }else if (estado==8){
+                porcentaje_riesgo+=3.2;
+            }
             tollens+=" ,tiene EPOC";
             recomendaciones+="•EPOC:sigue tomando los medicamentos recetados por tu médico y evita sofocarte, ejercicios vigorozos y aquello que te genera alergia\n";
         }
 
-        if (estado == 7 && cardiovascular.isChecked()){
-            //checar porcentajes
-            porcentaje_riesgo+=1.2;
+        if ((estado == 7 || estado==8) && cardiovascular.isChecked()){
+            if (estado==7){
+                porcentaje_riesgo+=1.2;
+            }else if (estado==8){
+                porcentaje_riesgo+=3;
+            }
             tollens+=" ,tiene enfermedad cardiovascular";
             recomendaciones+="•Enfermedad cardiovascular:Continúa tomando tus medicamentos para el corazón y procura mantenerte relajado\n";
         }
 
-        if (estado == 7 && inmunosupresion.isChecked()){
-            //checar porcentajes
-            porcentaje_riesgo+=1.2;
+        if ((estado == 7 || estado==8) && inmunosupresion.isChecked()){
+            if (estado==7){
+                porcentaje_riesgo+=1.2;
+            }else if (estado==8){
+                porcentaje_riesgo+=5.6;
+            }
             tollens+=", tiene inmunosupresión";
             recomendaciones+="•Inmunosupresión: Continúa tomando tus medicamentos para tu padecimiento\n";
         }
@@ -303,8 +324,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
 
+
+
+        //Estado 8 corresponde a hombre
+
+
         //If para realizar los calculos
-        if (fiebre.isChecked() || sin_fiebre.isChecked() || fiebre_moderada.isChecked() && posicion_spinner != 0 && mujer.isChecked()||hombre.isChecked()){
+        if ((fiebre.isChecked() || sin_fiebre.isChecked() || fiebre_moderada.isChecked()) && posicion_spinner != 0 && (mujer.isChecked()||hombre.isChecked())){
+
+            if (porcentaje_riesgo<=50){
+                nivelRiesgo.setTextColor(Color.BLUE);
+                nivelRiesgo.setText("Medio");
+                seekbar.setProgress(2);
+            }else if (porcentaje_riesgo>50 && porcentaje_riesgo<=75){
+                nivelRiesgo.setTextColor(Color.MAGENTA);
+                nivelRiesgo.setText("Alto");
+                seekbar.getProgressDrawable().setColorFilter(Color.MAGENTA, PorterDuff.Mode.SRC_IN);
+                seekbar.getThumb().setColorFilter(Color.MAGENTA, PorterDuff.Mode.SRC_IN);
+                seekbar.setProgress(3);
+            }else if (porcentaje_riesgo>75){
+                nivelRiesgo.setTextColor(Color.RED);
+                nivelRiesgo.setText("Muy Alto");
+                seekbar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+                seekbar.getThumb().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+                seekbar.setProgress(4);
+            }
+
+
             //Funcion para dar formato al porcentaje de riesgo
             DecimalFormat df = new DecimalFormat("#.0");
             resultado_final=Double.toString(porcentaje_riesgo);
@@ -312,12 +358,31 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             //prediagnostico.setText(tollens);
 
             estado=0;
+
             calcular.setVisibility(View.GONE);
             btn_limpiar.setVisibility(View.GONE);
             btn_segundo_activity.setVisibility(View.VISIBLE);
 
+            error_sexo.setVisibility(View.GONE);
+            error_temperatura.setVisibility(View.GONE);
+            error_edad.setVisibility(View.GONE);
+
         }else{
             Toast.makeText(getApplicationContext(),"Rellena los campos faltantes",Toast.LENGTH_SHORT).show();
+
+            if (!mujer.isChecked() && !hombre.isChecked()){
+                error_sexo.setVisibility(View.VISIBLE);
+            }
+
+            if (posicion_spinner == 0){
+                error_edad.setVisibility(View.VISIBLE);
+            }
+
+            if (!sin_fiebre.isChecked() && !fiebre_moderada.isChecked() && !fiebre.isChecked()){
+                error_temperatura.setVisibility(View.VISIBLE);
+
+            }
+
         }
     }
 
@@ -348,8 +413,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         riesgo.setText("");
 
         //Limpia los radiogroups de cada seccion
-        //temperatura.clearCheck();
-        //sexo.clearCheck();
+        temperatura.clearCheck();
+        sexo.clearCheck();
         //edad.clearCheck();
 
         //Limpia campos de padecimientos
@@ -366,6 +431,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         btn_limpiar.setVisibility(View.VISIBLE);
         btn_segundo_activity.setVisibility(View.GONE);
 
+        //Limpia seekbar
+        seekbar.setProgress(0);
+
+        //Esconde iconos de error
+        error_sexo.setVisibility(View.GONE);
+        error_temperatura.setVisibility(View.GONE);
+        error_edad.setVisibility(View.GONE);
 
     }
 
@@ -393,8 +465,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         riesgo.setText("");
 
         //Limpia los radiogroups de cada seccion
-        //temperatura.clearCheck();
-        //sexo.clearCheck();
+        temperatura.clearCheck();
+        sexo.clearCheck();
         //edad.clearCheck();
 
         //Limpia campos de padecimientos
@@ -408,6 +480,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         //Habilita boton de calcular
         calcular.setEnabled(true);
+
+        //Limpia seekbar
+        seekbar.setProgress(0);
+
+        //Esconde iconos de errores
+        error_sexo.setVisibility(View.GONE);
+        error_temperatura.setVisibility(View.GONE);
+        error_edad.setVisibility(View.GONE);
     }
 
 

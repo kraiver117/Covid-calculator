@@ -21,13 +21,14 @@ public class prediagnostico_recomendaciones extends AppCompatActivity {
         String tips=getIntent().getStringExtra("tips");
 
         TextView recomendaciones=findViewById(R.id.recomendaciones);
+        recomendaciones.setFocusable(false);
         TextView prediagnostico=findViewById(R.id.prediagnostico);
+        prediagnostico.setFocusable(false);
         prediagnostico.setText(tollens);
 
         Button regresar = findViewById(R.id.regresar);
 
         tips+="•Quedate en casa! \n";
-
         recomendaciones.setText(tips);
 
         regresar.setOnClickListener(new View.OnClickListener() {
